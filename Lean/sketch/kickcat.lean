@@ -1,4 +1,4 @@
--- An entry script should not be defined in a namepace
+-- An entry script should not be defined in a namespace
 
 -- Any IO action must be wrapped in another IO action
 def readLine (prompt : String) : IO String := do
