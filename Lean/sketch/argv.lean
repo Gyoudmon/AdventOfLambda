@@ -1,17 +1,17 @@
-import Lean.CoreM
-import Lean.MonadEnv
-import Lean.Environment
+import Lean
 
 ---------------------------------------------------------------
-#eval show Lean.CoreM Unit from do
-  dbg_trace s!"running: {(<- Lean.getEnv).header.mainModule}"
+syntax "module_name" : term
+elab_rules : term
+ | `(module_name) => do
+    return Lean.mkStrLit s!"{(<- Lean.getEnv).header.mainModule}"
 
 ---------------------------------------------------------------
 def main (args : List String) : IO UInt32 := do
   let pwd <- IO.currentDir
   let arguments := s!"argument{if args.length == 1 then "" else "s"}"
 
-  IO.println s!"  in: {pwd}"
+  IO.println s!"running: <{pwd}> {module_name}"
   IO.println s!"  received {args.length} {arguments} from user:"
 
   for arg in args,
