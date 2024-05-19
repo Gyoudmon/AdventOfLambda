@@ -1,5 +1,11 @@
 import Lean
 
+/-- argv
+  display the command line arguments,
+    as well as the name of current running script
+    just as `argv[0]` in C and alike.
+-/
+
 ---------------------------------------------------------------
 syntax "module_name" : term
 elab_rules : term

@@ -1,3 +1,12 @@
+import Lean
+
+/-- cat
+  concatenate and print files
+
+  `arg` args, a list of file names
+  `result` all contents of those files
+--/
+
 ---------------------------------------------------------------
 partial def cat (stdin : IO.FS.Stream) (stdout : IO.FS.Stream) : IO Unit := do
   let line ← stdin.getLine
