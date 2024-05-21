@@ -1,6 +1,4 @@
-import Lean
-
-/--- Day 1: Calorie Counting ---
+/- -- Day 1: Calorie Counting
 
 Santa's reindeer typically eat regular reindeer food,
 but they need a lot of magical energy to deliver presents on Christmas.
@@ -31,37 +29,40 @@ the Elves would instead like to know the total Calories carried by
 the top three Elves carrying the most Calories.
 That way, even if one of those Elves runs out of snacks, they still have two backups.
 
-  `arg` lists of calories carried by all elves
-  `result` total of the Elf carrying the most Calories
-  `result` total of the top three Elves carrying the most Calories
+`@arg` lists of calories carried by all elves
+`@result` total of the Elf carrying the most Calories
+`@result` total of the top three Elves carrying the most Calories
 
-  `test`
-  input:
-  1000
-  2000
-  3000
+`@test` samples
+input:
+1000
+2000
+3000
 
-  4000
+4000
 
-  5000
-  6000
+5000
+6000
 
-  7000
-  8000
-  9000
+7000
+8000
+9000
 
-  10000
+10000
 
-  output:
-  24000
-  45000
+output:
+24000
+45000
 
-  `test`
-  input: ../stone/aoc2022/01_cc.aoc
-  output:
-  69281
-  201524
+`@test` puzzle
+input:
+`@file` ../stone/aoc2022/01_cc.aoc
+output:
+69281
+201524
 --/
+
+import Lean
 
 ---------------------------------------------------------------
 partial def read_elf_calories (stdin : IO.FS.Stream) : IO (List Nat) := do
@@ -85,7 +86,7 @@ def find_peak_calories (tops : List Nat) (cal : Nat) : List Nat :=
     ((List.filter (· >= cal) tops) ++ [cal] ++ (List.filter (· < cal) tops))
 
 ---------------------------------------------------------------
-def main (args : List String) : IO UInt32 := do
+def main (_args : List String) : IO UInt32 := do
   let stdin ← IO.getStdin
   let stdout ← IO.getStdout
   let calories ← read_elf_calories stdin

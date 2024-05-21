@@ -13,7 +13,7 @@ def readLine (prompt : String) : IO String := do
   pure (line.dropRightWhile Char.isWhitespace)
 
 ---------------------------------------------------------------
-def main (args : List String) : IO UInt32 := do
+def main (_args : List String) : IO UInt32 := do
   let name <- readLine "喊出来你要踢谁: "
   IO.println s!"你刚刚踢了{name}一脚! {name} 很气愤。"
 

@@ -1,10 +1,10 @@
 import Lean
 
 /-- cat
-  concatenate and print files
+concatenate and print files
 
-  `arg` args, a list of file names
-  `result` all contents of those files
+`arg` args, a list of file names
+`result` all contents of those files
 --/
 
 ---------------------------------------------------------------
