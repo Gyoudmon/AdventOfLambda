@@ -34,13 +34,9 @@
     7. 测试用例的输入参数和输出参数应当符合上述 `@arg` 和 `@result` 的说明
     8. 可以通过 timeout 行指定测试用例的时间限制, 单位毫秒
 
-`@test` 这是题目给出的标准测试用例
+`@test` 这是一个标准测试用例
 input:  0 4
 output: 4.0
-
-`@test` 这是学生纸笔推演出的测试用例
-input:  0 -2
-output: -2.0
 
 `@test` 这个测试用例有多种输出可能(而且 input 和 output 交错出现了)
 output: -2.0
@@ -78,10 +74,9 @@ timeout: 100
 import Lean
 
 ---------------------------------------------------------------------------------------------------
-partial def forever (wc : Bool) : IO Unit := do
-  forever wc
+partial def trapped_in_time (_wc : Bool := true) : IO Unit := do trapped_in_time
 
-def read_arguments (stdin : IO.FS.Stream) : IO (Option (UInt8 × Int)) := do
+def read_input (stdin : IO.FS.Stream) : IO (Option (UInt8 × Int)) := do
   let line ← stdin.getLine
 
   if line.length > 0 then
@@ -93,33 +88,31 @@ def read_arguments (stdin : IO.FS.Stream) : IO (Option (UInt8 × Int)) := do
   else
     pure none
 
--- TODO: this function should not exist
-def print_flonum (fl : Float) (precision : Nat) : IO Unit := do
+-- TODO: this function should be replaced via FFI
+def flonum_to_string (fl : Float) (precision : Nat) : String :=
   let fxscale : Nat := 10 ^ precision
   let fxabs : Nat := (Float.round (fl.abs * Float.ofInt fxscale)).toUInt64.toNat
 
-  if fl < 0.0 then IO.print "-"
-  IO.print s!"{fxabs / fxscale}"
+  match (Float.round fl).toString.splitOn "." with
+  | fxnum::_ =>
+    if precision > 0 then
+      let r := s!"{fxabs % fxscale}"
+      let diff := precision - r.length
+      let fraction := diff.repeat (λ r => (['0'] ++ r.data).asString) r
 
-  if precision > 0 then
-    let r := s!"{fxabs % fxscale}"
-    let diff := precision - r.length
-
-    if diff == 0 then
-      IO.println s!".{r}"
+      s!"{fxnum}.{fraction}"
     else
-      IO.print "."
-      for _ in (List.range diff) do IO.print "0"
-      IO.println s!"{r}"
+      s!"{fxnum}"
+  | _ => "deadcode"
 
 ---------------------------------------------------------------------------------------------------
 def main (_args : List String) : IO UInt32 := do
-  match (← read_arguments (← IO.getStdin)) with
+  match (← read_input (← IO.getStdin)) with
   | none => return 255
-  | some (0, datum) => /- 主测试, 整数转浮点数 -/ print_flonum (Float.ofInt datum) 1
+  | some (0, datum) => /- 主测试, 整数转浮点数 -/ IO.println (flonum_to_string (Float.ofInt datum) 1)
   | some (1, _) => /- “沉默”咒术 -/ IO.println "哼, 战斗力只有5的渣渣!"
   | some (2, _) => /- 打断"沉默", 全异常解除 -/ IO.println "毁灭吧, 赶紧的, 累了!"
-  | some (3, _) => /- 时间监狱 -/ forever true
+  | some (3, _) => /- 时间监狱 -/ trapped_in_time
   | some (n, _) =>
     if n == 4 then
       (← IO.getStderr).putStrLn "不规范的输出被当成了输入！此类错误无法通过测试发现, 只好让程序自己报错了！"
