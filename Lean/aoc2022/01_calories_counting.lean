@@ -20,6 +20,11 @@ The Elves take turns writing down the number of Calories contained by the variou
 meals, snacks, rations, etc. that they've brought with them, one item per line.
 Each Elf separates their own inventory from the previous Elf's inventory (if any) by a blank line.
 
+`@arg` lists of calories carried by all elves
+`@result` total of the Elf carrying the most Calories
+
+***************************************************************************************************
+
 By the time you calculate the answer to the Elves' question,
 they've already realized that the Elf carrying the most
 Calories of food might eventually run out of snacks.
@@ -29,8 +34,6 @@ the Elves would instead like to know the total Calories carried by
 the top three Elves carrying the most Calories.
 That way, even if one of those Elves runs out of snacks, they still have two backups.
 
-`@arg` lists of calories carried by all elves
-`@result` total of the Elf carrying the most Calories
 `@result` total of the top three Elves carrying the most Calories
 
 `@test` samples
@@ -54,7 +57,7 @@ output:
 24000
 45000
 
-`@test` puzzle
+`@test` collected calories
 input:
 `@file` ../stone/aoc2022/01_cc.aoc
 output:
