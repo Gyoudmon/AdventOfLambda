@@ -125,12 +125,9 @@ def smart_shape (op_play : Shape) (sf_end : Outcome) : Shape :=
 ---------------------------------------------------------------
 def char_to_shape (ch : Char) : Option Shape :=
   match ch with
-  | 'A' => Shape.Rock
-  | 'B' => Shape.Paper
-  | 'C' => Shape.Scissor
-  | 'X' => Shape.Rock
-  | 'Y' => Shape.Paper
-  | 'Z' => Shape.Scissor
+  | 'A' | 'X' => Shape.Rock
+  | 'B' | 'Y' => Shape.Paper
+  | 'C' | 'Z' => Shape.Scissor
   | _ => none
 
 def char_to_outcome (ch : Char) : Option Outcome :=
