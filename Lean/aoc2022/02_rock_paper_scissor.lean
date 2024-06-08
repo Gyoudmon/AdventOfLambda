@@ -65,16 +65,12 @@ import Lean
 
 ---------------------------------------------------------------
 inductive Shape where
-  | Rock : Shape
-  | Paper : Shape
-  | Scissor : Shape
-  deriving Repr
+  | Rock | Paper | Scissor
+  deriving Repr, BEq
 
 inductive Outcome where
-  | Win : Outcome
-  | Draw : Outcome
-  | Lose : Outcome
-  deriving Repr
+  | Win | Draw | Lose
+  deriving Repr, BEq
 
 def shape_score : Shape -> Nat
   | Shape.Rock => 1
@@ -82,45 +78,33 @@ def shape_score : Shape -> Nat
   | Shape.Scissor => 3
 
 def outcome_score : Outcome -> Nat
-  | Outcome.Win => 6
-  | Outcome.Draw => 3
-  | Outcome.Lose => 0
+  | .Win => 6
+  | .Draw => 3
+  | .Lose => 0
 
 ---------------------------------------------------------------
 def round_score (sf_play : Shape) (outcome : Outcome) : Nat :=
   shape_score sf_play + outcome_score outcome
 
 def round_end (op_play : Shape) (sf_play : Shape) : Outcome :=
-  match op_play with
-  | Shape.Rock =>
-      match sf_play with
-      | Shape.Rock => Outcome.Draw
-      | Shape.Scissor => Outcome.Lose
-      | Shape.Paper => Outcome.Win
-  | Shape.Paper =>
-      match sf_play with
-      | Shape.Paper => Outcome.Draw
-      | Shape.Rock => Outcome.Lose
-      | Shape.Scissor => Outcome.Win
-  | Shape.Scissor =>
-      match sf_play with
-      | Shape.Scissor => Outcome.Draw
-      | Shape.Paper => Outcome.Lose
-      | Shape.Rock => Outcome.Win
+  match op_play, sf_play with
+  | .Rock, .Scissor => .Lose
+  | .Rock, .Paper => .Win
+  | .Paper, .Rock => .Lose
+  | .Paper, .Scissor => .Win
+  | .Scissor, .Paper => .Lose
+  | .Scissor, .Rock => .Win
+  | _, _ => .Draw
 
 def smart_shape (op_play : Shape) (sf_end : Outcome) : Shape :=
-  match sf_end with
-  | Outcome.Draw => op_play
-  | Outcome.Win =>
-      match op_play with
-      | Shape.Rock => Shape.Paper
-      | Shape.Scissor => Shape.Rock
-      | Shape.Paper => Shape.Scissor
-  | Outcome.Lose =>
-      match op_play with
-      | Shape.Paper => Shape.Rock
-      | Shape.Rock => Shape.Scissor
-      | Shape.Scissor => Shape.Paper
+  match sf_end, op_play with
+  | .Draw, _ => op_play
+  | .Win, .Rock => .Paper
+  | .Win, .Scissor => .Rock
+  | .Win, .Paper => .Scissor
+  | .Lose, .Rock => .Scissor
+  | .Lose, .Paper => .Rock
+  | .Lose, .Scissor => .Paper
 
 ---------------------------------------------------------------
 def char_to_shape (ch : Char) : Option Shape :=
@@ -137,6 +121,17 @@ def char_to_outcome (ch : Char) : Option Outcome :=
   | 'Z' => Outcome.Win
   | _ => none
 
+def guessed_strategy_round (strategy : (Shape × Char)) (score : Nat) : Nat :=
+  match char_to_shape strategy.snd with
+  | some sf_play => score + (round_score sf_play (round_end strategy.fst sf_play))
+  | none => score
+
+def designed_strategy_round (strategy : (Shape × Char)) (score : Nat) : Nat :=
+  match char_to_outcome strategy.snd with
+  | some sf_out => score + (round_score (smart_shape strategy.fst sf_out) sf_out)
+  | none => score
+
+---------------------------------------------------------------
 partial def read_strategy (stdin : IO.FS.Stream) : IO (List (Shape × Char)) := do
   let rec read_guide (instructions : List (Shape × Char)) : IO (List (Shape × Char)) := do
     let line ← stdin.getLine
@@ -148,17 +143,7 @@ partial def read_strategy (stdin : IO.FS.Stream) : IO (List (Shape × Char)) := 
         | none => read_guide instructions
     | _EOF => pure instructions
 
-  read_guide ([] : List (Shape × Char))
-
-def guessed_strategy_round (strategy : (Shape × Char)) (score : Nat) : Nat :=
-  match char_to_shape strategy.snd with
-  | some sf_play => score + (round_score sf_play (round_end strategy.fst sf_play))
-  | none => score
-
-def designed_strategy_round (strategy : (Shape × Char)) (score : Nat) : Nat :=
-  match char_to_outcome strategy.snd with
-  | some sf_out => score + (round_score (smart_shape strategy.fst sf_out) sf_out)
-  | none => score
+  read_guide []
 
 ---------------------------------------------------------------
 def main (_args : List String) : IO UInt32 := do

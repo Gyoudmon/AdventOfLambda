@@ -68,6 +68,11 @@ output:
 import Lean
 
 ---------------------------------------------------------------
+def find_peak_calories (tops : List Nat) (cal : Nat) : List Nat :=
+  List.take tops.length
+    ((List.filter (· >= cal) tops) ++ [cal] ++ (List.filter (· < cal) tops))
+
+---------------------------------------------------------------
 partial def read_elf_calories (stdin : IO.FS.Stream) : IO (List Nat) := do
   let rec read_calories (self_cal : Nat) (calories : (List Nat)) : IO (List Nat) := do
     let line ← stdin.getLine
@@ -83,10 +88,6 @@ partial def read_elf_calories (stdin : IO.FS.Stream) : IO (List Nat) := do
         pure calories
 
   read_calories 0 []
-
-def find_peak_calories (tops : List Nat) (cal : Nat) : List Nat :=
-  List.take tops.length
-    ((List.filter (· >= cal) tops) ++ [cal] ++ (List.filter (· < cal) tops))
 
 ---------------------------------------------------------------
 def main (_args : List String) : IO UInt32 := do
