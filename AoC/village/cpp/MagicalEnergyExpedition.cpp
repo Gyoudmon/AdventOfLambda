@@ -1,0 +1,351 @@
+#include <gydm/game.hpp>
+
+#include "digitama/magical_energy_expedition/calorie_counting.hpp"
+#include "digitama/magical_energy_expedition/rochambo.hpp"
+#include "digitama/magical_energy_expedition/rucksack_reorganization.hpp"
+
+#include "digitama/aoc.hpp"
+
+#include <vector>
+#include <filesystem>
+
+using namespace GYDM;
+using namespace WarGrey::AoC;
+
+/*************************************************************************************************/
+namespace {
+#ifndef __windows__
+    static const char* unknown_task_name = "冒\n险\n越\n来\n越\n深\n入\n了";
+    static const char* task_name_fmt = "%02d\n%s";
+#else
+    static const char* unknown_task_name = "冒险越来越深入了";
+    static const char* task_name_fmt = "%02d %s";
+#endif
+
+    static const int elf_on_boat_count = 0;
+    static const int advent_days = 25;
+
+    /*********************************************************************************************/
+    class StarFruitlet : public GYDM::Sprite {
+    public:
+#ifndef __windows__
+        StarFruitlet(int day) : Sprite("sprite/star"), day(day) {}
+#else
+        StarFruitlet(const std::string& name, int day)
+            : Sprite("sprite/star"), name(name), day(day) {}
+
+    public:
+        std::string name;
+#endif
+        
+    public:
+        int day;
+    };
+
+    /*********************************************************************************************/
+    class MagicalEnergyExpeditionPlane : public Plane {
+    public:
+        MagicalEnergyExpeditionPlane(Cosmos* master) : Plane("Magical Energy Expedition"), master(master) {}
+
+    public:  // 覆盖游戏基本方法
+        void load(float width, float height) override {
+            this->sledge = this->insert(new GridAtlas("sledge.png"));
+            this->splash = this->insert(new GridAtlas("splash.png"));
+            this->title = this->insert(new Labellet(GameFont::Title(), BLACK, title0_fmt, "魔法能量远征"));
+            this->boat = this->insert(new Sprite("boat.png"));
+
+            this->agent = this->insert(new Linkmon());
+            this->agent->scale(-1.0F, 1.0F);
+            
+            for (int idx = 0; idx < advent_days; idx ++) {
+                const char* task_name = this->master->plane_name(idx + 1);
+                
+                if (task_name == nullptr) {
+                    std::string vname = make_nstring(task_name_fmt, idx + 1, unknown_task_name);
+            
+#ifndef __windows__
+                    this->names.push_back(this->insert(new Labellet(GameFont::fangsong(), GAINSBORO, "%s", vname.c_str())));
+                    this->stars.push_back(this->insert(new StarFruitlet(idx + 1)));
+#else
+                    this->stars.push_back(this->insert(new StarFruitlet(vname, idx + 1)));
+#endif
+
+                    this->stars[idx]->scale(0.05F);
+                    this->stars.back()->switch_to_costume("dark");
+                } else {
+#ifndef __windows__
+                    std::string vname = make_nstring(task_name_fmt, idx + 1, string_add_between(task_name).c_str());
+
+                    this->names.push_back(this->insert(new Labellet(GameFont::fangsong(), ROYALBLUE, "%s", vname.c_str())));
+                    this->stars.push_back(this->insert(new StarFruitlet(idx + 1)));
+#else
+                    std::string vname = make_nstring(task_name_fmt, idx + 1, task_name);
+
+                    this->stars.push_back(this->insert(new StarFruitlet(vname, idx + 1)));
+#endif
+
+                    this->stars[idx]->scale(0.05F);
+                    this->stars.back()->switch_to_costume("bright");
+                }
+            }
+
+            this->tux = this->insert(new Tuxmon());
+            this->tux->wear("santa_hat");
+
+            for (int idx = 0; idx < santa_elf_type_count; idx ++) {
+                this->elves[idx] = this->insert(new ElfSheet(idx));
+                if (idx < elf_on_boat_count) {
+                    this->elves[idx]->scale(0.618F);
+                }
+            }
+
+            this->tooltip = this->insert(make_label_for_tooltip(GameFont::Tooltip()));
+            this->set_tooltip_matter(this->tooltip);
+
+            this->sledge->scale(0.80F);
+            this->splash->scale(1.80F);
+        }
+        
+        void reflow(float width, float height) override {
+            this->move_to(this->title, { this->agent, MatterPort::RB }, MatterPort::LB);
+            this->move_to(this->sledge, { width, 0.0F }, MatterPort::RT);
+            this->move_to(this->splash, { width * 0.5F, height }, MatterPort::CB);
+
+            this->move_to(this->boat, { this->splash, { 0.1F, 0.9F }}, MatterPort::LB);
+            
+            for (int idx = 0; idx < elf_on_boat_count; idx ++) {
+                if (idx == 0) {
+                    this->move_to(this->elves[idx], { this->boat, MatterPort::LB }, MatterPort::RB);
+                } else {
+                    this->move_to(this->elves[idx], { this->elves[idx - 1], MatterPort::LB }, MatterPort::RB);
+                }
+            }
+
+            for (int idx = elf_on_boat_count; idx < santa_elf_type_count; idx ++) {
+                if (idx == elf_on_boat_count) {
+                    this->move_to(this->elves[idx], { this->sledge, MatterPort::RB }, MatterPort::RT);
+                } else {
+                    this->move_to(this->elves[idx], { this->elves[idx - 1], MatterPort::LC }, MatterPort::RC);
+                }
+            }
+            
+            for (int idx = 0; idx < this->stars.size(); idx ++) {
+                if (idx == 0) {
+                    this->move_to(this->stars[idx], { this->agent, MatterPort::LB }, MatterPort::LT);
+                } else {
+                    this->move_to(this->stars[idx], { this->stars[idx - 1], MatterPort::RC }, MatterPort::LC);
+                }
+
+#ifndef __windows__
+                this->move_to(this->names[idx], { this->stars[idx], MatterPort::CB }, MatterPort::CT);
+#endif
+            }
+
+            if (this->stars.size() == 0) {
+                this->move_to(this->tux, { this->agent, MatterPort::LB }, MatterPort::LT);
+            } else {
+                this->move_to(this->tux, { this->stars[0], MatterPort::LB }, MatterPort::LT);
+            }
+        }
+
+        void update(uint64_t count, uint32_t interval, uint64_t uptime) override {
+            if (this->stars.size() > 0) {
+                Dot rtux = this->get_matter_location(this->tux, MatterPort::RB);
+                Dot stars = this->get_matter_location(this->stars.back(), MatterPort::RB);
+
+                if (rtux.x >= stars.x) {
+                    Dot ltux = this->get_matter_location(this->tux, MatterPort::CB);
+            
+                    if (ltux.x < stars.x) {
+                        this->tux->play("skid");
+                    } else {
+                        this->move(this->tux, - rtux.x, 0.0F);
+                        this->tux->play("walk");
+                    }
+                }
+            }
+
+            if (count % 4 == 0) { /* move the expedition team */
+                float dx = float(random_uniform(-1, 1));
+                float dy = float(random_uniform(-1, 1));
+
+                this->move(this->boat, dx, dy);
+                for (int idx = 0; idx < elf_on_boat_count; idx ++) {
+                    this->move(this->elves[idx], dx, dy);
+                }
+            }
+
+            if (this->target_plane > 0) {
+                if (!this->agent->in_playing()) {
+                    this->master->transfer_to_plane(this->target_plane);
+                    this->target_plane = 0;
+                }
+            }
+        }
+
+        void on_enter(IPlane* from) override {
+            this->agent->play("Greeting", 1);
+
+            this->tux->set_border_strategy(BorderStrategy::IGNORE);
+            this->tux->set_velocity(2.0F, 0.0F);
+            
+            for (int idx = 0; idx < santa_elf_type_count; idx ++) {
+                if (idx < elf_on_boat_count) {
+                    this->elves[idx]->play("rwalk");
+                } else {
+                    this->elves[idx]->play("lwalk");
+                }
+            }
+        }
+
+    public:
+        bool can_select(IMatter* m) override {
+            return dynamic_cast<ElfSheet*>(m) != nullptr;
+        }
+
+        void on_tap(IMatter* m, float x, float y) override {
+            if (m == this->tux) {
+                if (this->tux->is_wearing()) {
+                    this->tux->take_off();
+                } else {
+                    this->tux->wear("santa_hat");
+                }
+            } else {
+                StarFruitlet* star = dynamic_cast<StarFruitlet*>(m);
+                ElfSheet* elf = dynamic_cast<ElfSheet*>(m);
+                
+                if (star != nullptr) {
+                    if (star->day < this->master->plane_count()) {
+                        this->target_plane = star->day;
+                        this->agent->play("Hide", 1);
+                    }
+                } else if (elf != nullptr) {
+                    this->glide_to_random_location(4.0F, elf);
+                    this->set_selected(elf);
+                }
+            }
+        }
+
+        void on_tap_selected(IMatter* m, float x, float y) override {
+            ElfSheet* elf = dynamic_cast<ElfSheet*>(m);
+            
+            if (elf != nullptr) {
+                this->glide(1.0F, elf, { 32.0F, 0.0F });
+                this->glide(1.0F, elf, { 0.0F, -32.0F });
+                this->glide(1.0F, elf, { -32.0F, 0.0F });
+                this->glide(1.0F, elf, { 0.0F, 32.0F });
+            }
+        }
+
+    protected:
+        bool update_tooltip(IMatter* m, float local_x, float local_y, float global_x, float global_y) override {
+            bool updated = false;
+            
+#ifdef __windows__
+            auto star = dynamic_cast<StarFruitlet*>(m);
+
+            if (star != nullptr) {
+                this->tooltip->set_text(" %s ", star->name.c_str());
+                updated = true;
+            }
+#endif
+
+            return updated;
+        }
+
+    private:
+        Linkmon* agent;
+        Labellet* title;
+        Labellet* tooltip;
+        std::vector<Sprite*> stars;
+        std::vector<Labellet*> names;
+        Tuxmon* tux;
+        ElfSheet* elves[santa_elf_type_count];
+        GridAtlas* sledge;
+        GridAtlas* splash;
+        Sprite* boat;
+        
+    private:
+        Cosmos* master;
+        int target_plane = 0;
+    };
+
+    /*************************************************************************************************/
+    enum class CmdlineOps { TopCount, GroupSize, _ };
+
+    class MagicalEnergyExpeditionCosmos : public Cosmos {
+    public:
+        MagicalEnergyExpeditionCosmos(const char* process_path) : Cosmos(60) {
+            enter_digimon_zone(process_path);
+            imgdb_setup(digimon_zonedir().append("stone"));
+            
+#ifdef __windows__
+            digimon_appdata_setup("C:\\opt\\GYDMstem\\");
+            digimon_mascot_setup("C:\\opt\\GYDMstem\\stone\\mascot");
+#else
+            digimon_appdata_setup("/opt/GYDMstem/");
+            digimon_mascot_setup("/opt/GYDMstem/stone/mascot");
+#endif
+        }
+
+        virtual ~MagicalEnergyExpeditionCosmos() {
+            imgdb_teardown();
+        }
+
+    public:  // 覆盖游戏基本方法
+        void construct(int argc, char* argv[]) override {
+            this->parse_cmdline_options(argc, argv);
+            this->set_window_size(1200, 0);
+            GameFont::fontsize(21);
+
+            this->push_plane(new MagicalEnergyExpeditionPlane(this));
+            this->push_plane(new CalorieCountingPlane(this->top_count));
+            this->push_plane(new RochamboPlane());
+            this->push_plane(new RucksackReorganizationPlane());
+        }
+
+    protected:
+        void update(uint64_t count, uint32_t interval, uint64_t uptime) override {
+            if (this->has_current_mission_completed()) {
+                this->transfer_to_plane(0);
+            }
+        }
+
+    private:
+        void parse_cmdline_options(int argc, char* argv[]) {
+            CmdlineOps opt = CmdlineOps::_;
+            std::string datin;
+
+            // this->set_cmdwin_height(32);
+
+            for (int idx = 1; idx < argc; idx ++) {
+                switch (opt) {
+                    case CmdlineOps::TopCount: {
+                        this->top_count = std::stoi(argv[idx]);
+                        opt = CmdlineOps::_;
+                    }; break;
+                    default: {
+                        if (strncmp("--tc", argv[idx], 5) == 0) {
+                            opt = CmdlineOps::TopCount;
+                        } else {
+                            datin = std::string(argv[idx]);
+                        }
+                    }
+                }
+            }
+        }
+
+    private:
+        int top_count = 0;
+    };
+}
+
+/*************************************************************************************************/
+int main(int argc, char* args[]) {
+    MagicalEnergyExpeditionCosmos universe(args[argc]);
+
+    universe.construct(argc, args);
+    universe.big_bang();
+
+    return 0;
+}

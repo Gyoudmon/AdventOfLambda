@@ -1,0 +1,136 @@
+#pragma once // 确保只被 include 一次
+
+#include "../aoc.hpp"
+
+#include <vector>
+#include <map>
+
+namespace WarGrey::AoC {
+    /******************************************* 声明游戏精灵 ******************************************/
+    static const unsigned int DICT_SIZE = 53;
+
+    class Rucksack : public GYDM::Sprite {
+    public:
+        Rucksack(const std::string& items, size_t id);
+        
+    public:
+        std::string items;
+        size_t id;
+    };
+
+    class PackHash : public GYDM::GridAtlas {
+    public:
+        PackHash();
+
+    public:
+        void construct(GYDM::dc_t* renderer) override;
+        void draw(GYDM::dc_t* renderer, float x, float y, float Width, float Height) override;
+
+    public:
+        void insert_items(const std::string& items);
+        void insert_item(char ch, bool update = true);
+        int lookup(char ch);
+        void clear() { this->dict.clear(); }
+
+    protected:
+        int get_atlas_tile_index(size_t map_idx, int& xoff, int& yoff) override;
+    
+    private:
+        std::map<int, int> dict;
+    };
+
+    class Backpack : public GYDM::GridAtlas {
+    public:
+        Backpack();
+
+    public:
+        void construct(GYDM::dc_t* renderer) override;
+        void draw(GYDM::dc_t* renderer, float x, float y, float Width, float Height) override;
+
+    public:
+        void set_items(const std::string& items);
+        size_t item_count() { return this->items.size(); }
+        char compartment_popfront();
+        void compartment_lookup(WarGrey::AoC::PackHash* dict);
+        void clear();
+        void clear_dict();
+
+    protected:
+        int get_atlas_tile_index(size_t map_idx, int& xoff, int& yoff) override;
+
+    private:
+        std::string items;
+        int tile_indices[DICT_SIZE] = {};
+        std::vector<int> shared_indices;
+    };
+
+    /******************************************* 声明游戏状态 ******************************************/
+    enum class RRStatus {
+        FindMisplacedItems,
+        FindBadgeItems,
+        CreatePackHash,
+        TaskDone
+    };
+    
+    /******************************************* 声明游戏世界 ******************************************/
+    class RucksackReorganizationPlane : public GYDM::Plane {
+    public:
+        RucksackReorganizationPlane() : Plane("背包重组") {}
+        virtual ~RucksackReorganizationPlane();
+
+    public:  // 覆盖游戏基本方法
+        void construct(float width, float height) override;
+        void load(float width, float height) override;
+        void reflow(float width, float height) override;
+        void update(uint64_t count, uint32_t interval, uint64_t uptime) override;
+
+    public:
+        bool can_select(GYDM::IMatter* m) override;
+        void after_select(GYDM::IMatter* m, bool yes_or_no) override;
+
+    protected:
+        void on_mission_start(float width, float height) override;
+        void on_tap_selected(GYDM::IMatter* m, float local_x, float local_y) override;
+
+    private:
+        void on_task_start(WarGrey::AoC::RRStatus status);
+        void on_task_done();
+
+    private:
+        void move_rucksack_to_grid(WarGrey::AoC::Rucksack* rucksack);
+        void display_items(WarGrey::AoC::Rucksack* rucksack);
+
+    private:
+        void load_item_list(const std::string& pathname);
+
+    private: // 本游戏世界中的物体
+        GYDM::Linkmon* agent;
+        GYDM::Labellet* title;
+        GYDM::GridAtlas* backdrop;
+        GYDM::Labellet* population;
+        GYDM::Labellet* info_board;
+        GYDM::Dimensionlet* misplaced_sum;
+        GYDM::Dimensionlet* badge_sum;
+        std::vector<WarGrey::AoC::Rucksack*> rucksacks;
+        WarGrey::AoC::Backpack* backpack;
+        WarGrey::AoC::PackHash* hashtable;
+
+    private:
+        WarGrey::AoC::RRStatus status;
+        GYDM::DimensionStyle style;
+
+    private: // shared variable
+        int current_rucksack_idx;
+
+    private: // for FindMisplacedItems
+        int misplaced_item_priority_sum;
+        char misplaced_dict1[DICT_SIZE];
+        char misplaced_dict2[DICT_SIZE];
+
+    private: // for FindBadgeItem
+        char* badge_dicts[2];
+        const char* group_items[3];
+        size_t group_sizes[3];
+        int badge_item_priority_sum;
+    };
+}
