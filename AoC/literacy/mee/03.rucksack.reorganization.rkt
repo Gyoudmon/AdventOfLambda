@@ -188,18 +188,12 @@ Python 可以通过@bold{自动序列装包/拆包}达到同样的目的，但�
 的每一项的操作}。换句话说，我们可以直接调用 @racket[find-misplaced-item]，并传给它一个字符串作为参数，用于测试算法是否靠谱，
 而不用每次都费劲去准备一个文件作为数据源。比如，就用任务例子中的字符串好了：
 
-@tamer-repl[(find-misplaced-item
-             "vJrwpWtwJgWrhcsFMMfFFhFp")
-            (find-misplaced-item
-             "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL")
-            (find-misplaced-item
-             "PmmdzqPrVvPwwTWBwg")
-            (find-misplaced-item
-             "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn")
-            (find-misplaced-item
-             "ttgJtRGJQctTZtZT")
-            (find-misplaced-item
-             "CrZsJsPPZsGzwwsLwLmpwMDw")]
+@tamer-repl[(find-misplaced-item "vJrwpWtwJgWrhcsFMMfFFhFp")
+            (find-misplaced-item "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL")
+            (find-misplaced-item "PmmdzqPrVvPwwTWBwg")
+            (find-misplaced-item "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn")
+            (find-misplaced-item "ttgJtRGJQctTZtZT")
+            (find-misplaced-item "CrZsJsPPZsGzwwsLwLmpwMDw")]
 
 函数的返回值跟例子里的结论不能说完全相同，简直就是一摸一样啊。
 
@@ -214,10 +208,8 @@ Python 可以通过@bold{自动序列装包/拆包}达到同样的目的，但�
 @handbook-chunk[<定义物品类型优先级函数>
                 (code:comment #,($argv [ich "代表物品类型的字符"]))
                 (define (item-priority ich)
-                  (cond [(char<=? #\a ich #\z)
-                         (+ (char->integer ich) (- 97) 1)]
-                        [(char<=? #\A ich #\Z)
-                         (+ (char->integer ich) (- 65) 27)]
+                  (cond [(char<=? #\a ich #\z) (+ (char->integer ich) (- 97) 1)]
+                        [(char<=? #\A ich #\Z) (+ (char->integer ich) (- 65) 27)]
                         [else 0]))
 
                 (code:comment #,($argv [items "代表共有物品类型的字符列表"]))
@@ -310,14 +302,10 @@ Python 可以通过@bold{自动序列装包/拆包}达到同样的目的，但�
 以下例子演示了如何借助 @racket[make-read-lines] 分别读取前三天任务的前三行输入数据。注意区分 @racket[read-line]
 和 @racket[(make-read-lines 1)] 的区别。
 
-@tamer-repl[(with-aoc-data-from "mee/01_cc.aoc" #:do
-                read-line)
-              (with-aoc-data-from "mee/01_cc.aoc" #:do
-                (make-read-lines 1))
-              (with-aoc-data-from "mee/02_rps.aoc" #:do
-                (make-read-lines 2))
-              (with-aoc-data-from "mee/03_rr.aoc" #:do
-                (make-read-lines 3))]
+@tamer-repl[(with-aoc-data-from "mee/01_cc.aoc" #:do read-line)
+            (with-aoc-data-from "mee/01_cc.aoc" #:do (make-read-lines 1))
+            (with-aoc-data-from "mee/02_rps.aoc" #:do (make-read-lines 2))
+            (with-aoc-data-from "mee/03_rr.aoc" #:do (make-read-lines 3))]
 
 到这里，有关文件输入大循环的奥秘就都解开了。从现在开始，我们将不再关注文件输入大循环，而只关注@question{我们需要读取
 什么样的数据}和@question{如何处理这些数据}。处理后者的函数是重点，处理前者的函数只是文件原始内容和后者之间的@bold{管道}。

@@ -1,0 +1,48 @@
+{
+    "configurations": [
+        {
+            "name": "macOS",
+            "includePath": [
+                "village/cpp",
+                "/usr/local/include",
+                "/opt/GYDMstem/include"
+            ],
+            "defines": [
+                "__racket__",
+                "__macosx__",
+                "__lambda__=",
+                "__ffi__=",
+                "Flonum=double",
+                "DECLSPEC=",
+                "SDLCALL="
+            ],
+            "macFrameworkPath": [
+                "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-x64",
+            "configurationProvider": "makefile-tools",
+            "compilerArgs": []
+        },
+
+        {
+            "name": "win32",
+            "includePath": [
+                "village\\cpp",
+                "C:\\opt\\GYDMstem\\include"
+            ],
+            "defines": [
+                "__racket__",
+                "__windows__",
+                "__lambda__=__declspec(dllexport)",
+                "__ffi__=__declspec(dllexport)",
+                "Flonum=double",
+                "DECLSPEC=",
+                "SDLCALL="
+            ]
+        }
+    ],
+    "version": 4
+}

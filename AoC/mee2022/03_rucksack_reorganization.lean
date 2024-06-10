@@ -56,7 +56,7 @@ output:
 
 `@test` all items in each rucksack
 input:
-`@file` ../stone/aoc2022/03_rr.aoc
+`@file` ../tamer/mee/03_rr.aoc
 output:
 8185
 2817

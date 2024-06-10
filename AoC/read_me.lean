@@ -56,9 +56,9 @@ input: 2
 128.0
 
 `@test` 懒惰的外部测试用例。其内容来自两个文件, 中间的空行说明这两个文件分别提供输入和输出数据
-`@file` stone/readme.in
+`@file` tamer/readme.in
 
-`@file` stone/readme.ans
+`@file` tamer/readme.ans
 
 `@test` 超时的测试用例。不小心写了个死循环！
 timeout: 100

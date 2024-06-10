@@ -59,7 +59,7 @@ output:
 
 `@test` collected calories
 input:
-`@file` ../stone/aoc2022/01_cc.aoc
+`@file` ../tamer/mee/01_cc.aoc
 output:
 69281
 201524
