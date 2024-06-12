@@ -3,13 +3,13 @@
 @require{literacy.rkt}
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-@handbook-title/pkg-desc[]
+@handbook-title[#:hide-version? #true #:subtitle "魔法能量远征"]{函数降临节}
+
+@handbook-preface-section{代码降临节}
 
 代码降临节（Advent of Code）是始于2015年的年度编程挑战活动，
 也是圣诞日历文化在科技圈的延伸。活动每年12月1日开始，由一个或一系列虚构的故事引出，
 参与者每天用代码解两个谜题，一直到圣诞节当天结束，共计25天50个谜题。
-虽然活动发生在每年的最后一个月，但出题人事先要花4-5个月（的业余时间）来准备；
-活动也不要求参与者一定要在规定时间内完成，以往的谜题也可以随时查看。
 
 此挑战活动不要求参与者有计算机科班背景，对语言、软件和硬件配置也没有要求。
 懂点编程基础知识、有一定的问题求解技巧即可开始。总之，青少练手、大学课程项目、
@@ -24,9 +24,24 @@
 远征过程可能会出现函数式不擅长的问题，
 届时我们也不会犹豫使用其他思路来求解。
 
+@handbook-preface-section{魔法能量远征}
+
+圣诞驯鹿的主食与普通驯鹿无异，但它们需要特殊能量来快递圣诞礼物。
+因此，驯鹿最爱的零食是一种只会生长在丛林深处的特殊的星形水果，
+精灵们每年都会带你远征去寻找这种水果。
+
+为了供应足够的礼物快递能量，远征队在圣诞节之前要采摘到至少50颗星形水果。
+尽管精灵会保证把你带到一个长满水果的树丛附近，但以防万一，你仍然可以攫取
+任何沿途看到的水果。采集水果的方式是解谜，一天两个谜题，解完第一个谜才会
+解锁第二个，每个谜题价值一颗水果。
+
+祝你好运！
+
 @handbook-smart-table[]
 
-@include-section{magical.energy.expedition.scrbl}
+@include-section[(submod "mee/01.calorie.counting.rkt" doc)]
+@;include-section[(submod "mee/02.rock.paper.scissors.rkt" doc)]
+@;include-section[(submod "mee/03.rucksack.reorganization.rkt" doc)]
 
 @;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-@handbook-appendix[#:numbered? #false #:index-section? #false #:prefab-bibentries? #false]
+@handbook-appendix[#:numbered? #false #:index-section? #true #:prefab-bibentries? #false]

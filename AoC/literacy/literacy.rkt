@@ -27,21 +27,26 @@
 (tamer-story-submodule-name 'advent)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define-syntax (aoc-task stx)
+  (syntax-parse stx #:datum-literals []
+    [(_ year day title ...)
+     (syntax/loc stx
+       (handbook-story (hyperlink (format "https://adventofcode.com/~a/day/~a" year day)
+                                  title ...)))]))
+
 (define-syntax (aoc-desc stx)
   (syntax-parse stx #:datum-literals []
-    [(_ day
-        (~alt (~once (~seq #:keywords [kw ...])))
+    [(_ (~alt (~once (~seq #:keywords [kw ...]))
+              (~once (~seq #:edition [edition date])))
         ...)
      (syntax/loc stx
        (itemlist #:style 'compact
-                 (item (list (emph "故事源") ": "
-                             (url (string-append "https://adventofcode.com/2022/day/"
-                                                 (number->string day)))))
                  (item (add-between #:splice? #true
                                     #:before-first (list (emph "关键词") ":" ~)
                                     (for/list ([key (in-list (list kw ...))])
                                       (racketkeywordfont (tech key)))
-                                    (list "," ~)))))]))
+                                    (list "," ~)))
+                 (item (list (emph "时间戳") ": " (tt date) ~ (format "第~a版" 'edition)))))]))
 
 (define-syntax ($argv stx)
   (syntax-case stx []
@@ -55,17 +60,6 @@
                      (racketvarfont name) ~ desc ...)
                (elem (linebreak) "; " (hspace (- maxlength (string-length name:rest)))
                      (racketvarfont name:rest) ~ desc:rest ...) ...)))]))
-
-(define-syntax (aoc-defterm stx)
-  (syntax-parse stx #:datum-literals []
-    [(_ (~alt (~optional (~seq #:key key) #:defaults ([key #'#false]))
-              (~optional (~seq #:origin en (~optional abbr)) #:defaults ([en #'#false] [abbr #'#false])))
-        ...
-        zh)
-     #'(append (tamer-defterm zh #:key key)
-               (cond [(and en abbr) (list "(" (tamer-defterm abbr) "," ~ (tamer-defterm en) ")")]
-                     [(or en abbr) (list "(" (tamer-defterm (or en abbr)) ")")]
-                     [else null]))]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define story
@@ -96,6 +90,10 @@
 (define id
   (lambda argv
     (apply racketidfont argv)))
+
+(define type
+  (lambda body
+    (apply racketvalfont body)))
 
 (define form
   (lambda argv
