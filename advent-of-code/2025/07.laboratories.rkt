@@ -7,50 +7,46 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define drive-classical-beam-splitting : (-> Input-Port Natural)
   (lambda [/dev/aocin]
-    (define manifold (port->lines /dev/aocin))
+    (define-values (beam manifold) (read-manifold /dev/aocin))
 
     (or (and (pair? manifold)
-             (for/fold ([beams : (Listof Index) (for/list : (Listof Index) ([chr (in-string (car manifold))]
-                                                                            [idx (in-naturals)] #:when (char=? chr #\S))
-                                                  (assert idx index?))]
+             (for/fold ([beams : (Listof Integer) (list beam)]
                         [count : Natural 0]
                         #:result count)
-                       ([line (in-list (cdr manifold))])
+                       ([line (in-list manifold)])
                (beam-classical-movedown beams line count)))
         0)))
 
 (define drive-quantum-beam-splitting : (-> Input-Port Natural)
   (lambda [/dev/aocin]
-    (define manifold (port->lines /dev/aocin))
+    (define-values (beam manifold) (read-manifold /dev/aocin))
 
     (or (and (pair? manifold)
-             (apply +
-                    (for/list : (Listof Natural) ([chr (in-string (car manifold))]
-                                                  [beam (in-naturals)] #:when (char=? chr #\S))
-                      (beam-quantum-movedown (assert beam index?) (cdr manifold)))))
+             (beam-quantum-movedown beam manifold))
         0)))
   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define beam-classical-movedown : (-> (Listof Index) String Natural (Values (Listof Index) Natural))
+(define read-manifold : (-> Input-Port (Values Index (Listof String)))
+  (lambda [/dev/aocin]
+    (let scan-start ([idx : Natural 0])
+      (define ch (read-char /dev/aocin))
+
+      (cond [(eof-object? ch) (values 0 null)]
+            [(char=? ch #\S) (read-line /dev/aocin) (values (assert idx index?) (port->lines /dev/aocin))]
+            [else (scan-start (add1 idx))]))))
+
+(define beam-classical-movedown : (-> (Listof Integer) String Natural (Values (Listof Integer) Natural))
   (lambda [beams line count]
     (define boundary (string-length line))
     
-    (for/fold ([beams++ : (Listof Index) null]
+    (for/fold ([beams++ : (Listof Integer) null]
                [count++ : Natural count])
               ([beam (in-list beams)])
       (if (char=? (string-ref line beam) #\^)
-          (let* ([b++ (classical-beam-cons (classical-beam-cons beams++ (sub1 beam) boundary)
-                                           (add1 beam) boundary)]
+          (let* ([b++ (set-union beams++ (list (sub1 beam) (add1 beam)))]
                  [delta (- (length b++) (length beams++))])
             (values b++ (+ count++ (if (zero? delta) 0 1))))
           (values (cons beam beams++) count++)))))
-
-(define classical-beam-cons : (-> (Listof Index) Fixnum Index (Listof Index))
-  (lambda [beams idx boundary]
-    (if (and (index? idx) (< idx boundary)
-             (not (memq idx beams)))
-        (cons idx beams)
-        beams)))
 
 (define beam-quantum-movedown : (-> Index (Listof String) Natural)
   (lambda [beam manifold]
@@ -74,6 +70,7 @@
   
   (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
 
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define testcases : (Listof Test-Case-Datum)
     '(.......S.......
       ...............

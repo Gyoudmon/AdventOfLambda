@@ -71,6 +71,7 @@
   (define-type Test-Case-Datum (List String Integer Integer))
   (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
 
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define testcases : (Listof Test-Case-Datum)
     (list (list "987654321111111" 98 987654321111)
           (list "811111111111119" 89 811111111119)

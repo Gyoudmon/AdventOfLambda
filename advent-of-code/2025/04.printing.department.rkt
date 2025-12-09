@@ -67,6 +67,7 @@
   
   (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
 
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define testcases : (Listof Test-Case-Datum)
     '(..@@.@@@@.
       @@@.@.@.@@
