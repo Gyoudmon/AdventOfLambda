@@ -84,8 +84,7 @@
 (define read-playground : (-> Input-Port Playground)
   (lambda [/dev/aocin]
     (define jboxes
-      (for/vector : (Vectorof JBox) ([pos (in-port read-point3d /dev/aocin)]
-                                     [idx (in-naturals)])
+      (for/vector : (Vectorof JBox) ([pos (in-port read-point3d /dev/aocin)])
         pos))
 
     (define indices (generate-matices jboxes))

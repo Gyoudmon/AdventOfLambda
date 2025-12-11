@@ -2,12 +2,13 @@
 
 (provide (all-defined-out))
 (provide (all-from-out digimon/digitama/unsafe/ops))
-(provide (all-from-out digimon/character))
+(provide (all-from-out digimon/character digimon/format))
 (provide (all-from-out racket/string racket/list racket/vector racket/set))
 (provide (all-from-out racket/port))
 
 (require digimon/digitama/unsafe/ops)
 (require digimon/character)
+(require digimon/format)
 
 (require racket/string)
 (require racket/vector)
@@ -16,6 +17,12 @@
 (require racket/set)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(struct point2d
+  ([x : Natural]
+   [y : Natural])
+  #:transparent
+  #:type-name Point2D)
+
 (struct point3d
   ([x : Natural]
    [y : Natural]
@@ -24,14 +31,14 @@
   #:type-name Point3D)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define read-point2d : (-> Input-Port (U EOF Complex))
+(define read-point2d : (-> Input-Port (U EOF Point2D))
   (lambda [/dev/aocin]
     (define x (read-natural /dev/aocin))
 
     (or (and (exact-nonnegative-integer? x)
              (let ([y (read-natural /dev/aocin)])
                (and (exact-nonnegative-integer? y)
-                 (make-rectangular x y))))
+                    (point2d x y))))
         eof)))
 
 (define read-point3d : (-> Input-Port (U EOF Point3D))
@@ -46,19 +53,11 @@
                            (point3d x y z))))))
         eof)))
 
-(define squared-distance : (-> Point3D Point3D Natural)
-  (lambda [p1 p2]
-    (define dx (- (point3d-x p2) (point3d-x p1)))
-    (define dy (- (point3d-y p2) (point3d-y p1)))
-    (define dz (- (point3d-z p2) (point3d-z p1)))
-    
-    (abs (+ (* dx dx) (* dy dy) (* dz dz)))))
-
-(define point->string : (-> (U Complex Point3D) String)
+(define point->string : (-> (U Point2D Point3D) String)
   (lambda [v]
     (if (point3d? v)
         (format "(~a, ~a, ~a)" (point3d-x v) (point3d-y v) (point3d-z v))
-        (format "(~a, ~a)" (real-part v) (imag-part v)))))
+        (format "(~a, ~a)" (point2d-x v) (point2d-y v)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define read-range : (-> Input-Port (U EOF (Pairof Index Index)))
@@ -98,3 +97,45 @@
                           (char->octadecimal digit)))
               id))
         eof)))
+
+(define read-text : (-> Input-Port Char Char (U EOF String))
+  (lambda [/dev/aocin open close]
+    (regexp-match #px"\\s*" /dev/aocin)
+
+    (define ch (peek-char /dev/aocin))
+
+    (if (and (char? ch) (char=? open ch))
+        (begin (read-char /dev/aocin)
+               (let read-text ([chars : (Listof Char) null])
+                 (define ch (read-char /dev/aocin))
+                 (if (char? ch)
+                     (if (char=? close ch)
+                         (apply string (reverse chars))
+                         (read-text (cons ch chars)))
+                     eof)))
+        eof)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define #:forall (Z) string->numbers : (-> String (U String Regexp) (-> (Option Complex) Boolean : Z) (Listof Z))
+  (lambda [s px z?]
+    (filter z? (map string->number (string-split s px)))))
+
+(define string->byte-numbers : (-> String (U String Regexp) (Listof Byte))
+  (lambda [s px]
+    (string->numbers s px byte?)))
+
+(define string->index-numbers : (->* (String) ((U String Regexp)) (Listof Index))
+  (lambda [s [px #px"\\s*,\\s*"]]
+    (string->numbers s px index?)))
+
+(define string->natural-numbers : (->* (String) ((U String Regexp)) (Listof Natural))
+  (lambda [s [px #px"\\s*,\\s*"]]
+    (string->numbers s px exact-nonnegative-integer?)))
+
+(define squared-distance : (-> Point3D Point3D Natural)
+  (lambda [p1 p2]
+    (define dx (- (point3d-x p2) (point3d-x p1)))
+    (define dy (- (point3d-y p2) (point3d-y p1)))
+    (define dz (- (point3d-z p2) (point3d-z p1)))
+    
+    (abs (+ (* dx dx) (* dy dy) (* dz dz)))))
