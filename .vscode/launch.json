@@ -1,0 +1,67 @@
+{
+    "version": "2.0.0",
+    
+    "configurations": [
+        {
+            "name": "一键编译/运行/测试 main 函数",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/compiled/native/bin/${fileBasenameNoExtension}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "internalConsoleOptions": "neverOpen",
+            "MIMode": "lldb",
+            "externalConsole": false,
+            "avoidWindowsConsoleRedirection": true,
+            "preLaunchTask": "测试驱动计算",
+
+            "logging": {
+                "exceptions": false,
+                "moduleLoad": false,
+                "trace": false,
+                "traceResponse": false,
+                "engineLogging": false,
+                "programOutput": true,
+                "natvisDiagnostics": false
+            },
+
+            "windows": {
+                "program": "${fileDirname}/compiled/native/bin/${fileBasenameNoExtension}.exe",
+                "MIMode": "gdb"
+            }
+        },
+
+        {
+            "name": "一键编译/运行/测试 main 函数[严格]",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/compiled/native/bin/${fileBasenameNoExtension}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "internalConsoleOptions": "neverOpen",
+            "MIMode": "lldb",
+            "externalConsole": false,
+            "avoidWindowsConsoleRedirection": true,
+            "preLaunchTask": "测试驱动计算[严格]",
+
+            "logging": {
+                "exceptions": false,
+                "moduleLoad": false,
+                "trace": false,
+                "traceResponse": false,
+                "engineLogging": false,
+                "programOutput": true,
+                "natvisDiagnostics": false
+            },
+
+            "windows": {
+                "program": "${fileDirname}/compiled/native/bin/${fileBasenameNoExtension}.exe",
+                "MIMode": "gdb"
+            }
+        }
+    ]
+}

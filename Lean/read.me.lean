@@ -55,11 +55,6 @@ input: 2
 
 128.0
 
-`@test` 懒惰的外部测试用例。其内容来自两个文件, 中间的空行说明这两个文件分别提供输入和输出数据
-`@file` tamer/readme.in
-
-`@file` tamer/readme.ans
-
 `@test` 超时的测试用例。不小心写了个死循环！
 timeout: 100
 3
@@ -98,7 +93,7 @@ def flonum_to_string (fl : Float) (precision : Nat) : String :=
     if precision > 0 then
       let r := s!"{fxabs % fxscale}"
       let diff := precision - r.length
-      let fraction := diff.repeat (λ r => (['0'] ++ r.data).asString) r
+      let fraction := diff.repeat (λ r => String.ofList (['0'] ++ r.toList)) r
 
       s!"{fxnum}.{fraction}"
     else

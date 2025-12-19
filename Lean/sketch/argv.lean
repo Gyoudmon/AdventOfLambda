@@ -1,7 +1,7 @@
 import Lean
 
 /-- argv
-  display the command line arguments,
+  echo the command line arguments,
     as well as the name of current running script
     just as `argv[0]` in C and alike.
 -/

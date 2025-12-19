@@ -59,7 +59,7 @@ output:
 
 `@test` collected calories
 input:
-`@file` ../tamer/mee/01_cc.aoc
+`@file` 01_calories_counting.aoc
 output:
 69281
 201524

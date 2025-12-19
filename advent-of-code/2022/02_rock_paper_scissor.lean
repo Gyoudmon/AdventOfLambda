@@ -55,7 +55,7 @@ output:
 
 `@test` rock, paper, scissor competition
 input:
-`@file` ../tamer/mee/02_rps.aoc
+`@file` 02_rock_paper_scissor.aoc
 output:
 14827
 13889

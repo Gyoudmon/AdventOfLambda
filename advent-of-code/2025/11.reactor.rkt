@@ -9,11 +9,11 @@
 (define-type Numerical-Graph (Immutable-HashTable Index (Listof Index)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define count-all-device-pathways : (-> Input-Port Natural)
+(define device-pathways-solve : (-> Input-Port Natural)
   (lambda [/dev/aocin]
     (length (collect-pathways (read-device-graph /dev/aocin) 'you 'out))))
 
-(define count-all-numerical-pathways : (-> Input-Port Natural)
+(define numerical-pathways-solve : (-> Input-Port Natural)
   (lambda [/dev/aocin]
     (define-values (G indices) (read-numerical-graph /dev/aocin))
     (define you-id (hash-ref indices 'you (λ [] #false)))
@@ -23,7 +23,7 @@
         (length (collect-pathways G you-id out-id))
         0)))
 
-(define count-all-pathway-through-dac/fft : (-> Input-Port Natural)
+(define anchored-pathways-solve : (-> Input-Port Natural)
   (lambda [/dev/aocin]
     (define master : Device-Graph (read-device-graph /dev/aocin))
     (define all-pathways : (Listof (Listof Symbol)) (collect-pathways master 'svr 'out))
@@ -33,7 +33,7 @@
                                     (memq 'fft pathway)))
       1)))
 
-(define count-all-through-dac/fft-via-dynamic-programming : (-> Input-Port Natural)
+(define anchored-pathways-dp-solve : (-> Input-Port Natural)
   (lambda [/dev/aocin]
     (define-values (G indices) (read-numerical-graph /dev/aocin))
     (define start (hash-ref indices 'svr (λ [] #false)))
@@ -145,13 +145,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (module+ main
-  (require digimon/spec)
-  (require syntax/location)
-
   (define-type Test-Case-Datum String)
   
-  (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define testcase1 : (Listof Test-Case-Datum)
     '("aaa: you hhh"
@@ -190,40 +185,31 @@
   (define pzzl-ans2 : Integer 458618114529380)
 
   (define-feature AoC2025::Day11::Reactor #:do
-    (describe "collect stars by solving puzzles" #:do
-      (describe "How many different paths lead from you to out?" #:do
-        (context "device graph" #:do
-          (it ["should produce ~a for the 1st example" test1-ans1] #:do
-            (expect-= (call-with-input-string example1 count-all-device-pathways)
-                      test1-ans1))
-          (it ["should produce ~a for the 2nd example" test2-ans1] #:do
-            (expect-= (call-with-input-string example2 count-all-device-pathways)
-                      test2-ans1))
-          (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
-            (expect-= (call-with-input-file input.aoc count-all-device-pathways)
-                      pzzl-ans1)))
-        (context "numerical graph" #:do
-          (it ["should produce ~a for the 1st example" test1-ans1] #:do
-            (expect-= (call-with-input-string example1 count-all-numerical-pathways)
-                      test1-ans1))
-          (it ["should produce ~a for the 2nd example" test2-ans1] #:do
-            (expect-= (call-with-input-string example2 count-all-numerical-pathways)
-                      test2-ans1))
-          (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
-            (expect-= (call-with-input-file input.aoc count-all-numerical-pathways)
-                      pzzl-ans1))))
-      (describe "How many of those paths visit both dac and fft?" #:do
-        (it ["should produce ~a for the 1st example via collecting" test1-ans2] #:do
-          (expect-= (call-with-input-string example1 count-all-pathway-through-dac/fft)
-                    test1-ans2))
-        (it ["should produce ~a for the 2nd example via collecting" test2-ans2] #:do
-          (expect-= (call-with-input-string example2 count-all-pathway-through-dac/fft)
-                    test2-ans2))
-        (it ["should produce ~a for the 2nd example via dynamic programming" test2-ans2] #:do
-          (expect-= (call-with-input-string example2 count-all-through-dac/fft-via-dynamic-programming)
-                    test2-ans2))
-        (it ["should produce ~a for the puzzle via dynamic programming" pzzl-ans2] #:do
-          (expect-= (call-with-input-file input.aoc count-all-through-dac/fft-via-dynamic-programming)
-                    pzzl-ans2)))))
-    
+    (describe "How many different paths lead from you to out?" #:do
+      (context "symbolic graph" #:do
+        (it ["should produce ~a for the 1st example" test1-ans1] #:do
+          ($ device-pathways-solve #:< example1 #:=> test1-ans1))
+        (it ["should produce ~a for the 2nd example" test2-ans1] #:do
+          ($ device-pathways-solve #:< example2 #:=> test2-ans1))
+        (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
+          ($ device-pathways-solve #:=> pzzl-ans1)))
+      (context "numerical graph" #:do
+        (it ["should produce ~a for the 1st example" test1-ans1] #:do
+          ($ numerical-pathways-solve #:< example1 #:=> test1-ans1))
+        (it ["should produce ~a for the 2nd example" test2-ans1] #:do
+          ($ numerical-pathways-solve #:< example2 #:=> test2-ans1))
+        (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
+          ($ numerical-pathways-solve #:=> pzzl-ans1))))
+    (describe "How many of those paths visit both 'dac' and 'fft'?" #:do
+      (context "collecting all pathways" #:do
+        (it ["should produce ~a for the 1st example" test1-ans2] #:do
+          ($ anchored-pathways-solve #:< example1 #:=> test1-ans2))
+        (it ["should produce ~a for the 2nd example" test2-ans2] #:do
+          ($ anchored-pathways-solve #:< example2 #:=> test2-ans2)))
+      (context "dynamic programming" #:do
+        (it ["should produce ~a for the 2nd example" test2-ans2] #:do
+          ($ anchored-pathways-dp-solve #:< example2 #:=> test2-ans2))
+        (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
+          ($ anchored-pathways-dp-solve #:=> pzzl-ans2)))))
+  
   (void (spec-prove AoC2025::Day11::Reactor)))

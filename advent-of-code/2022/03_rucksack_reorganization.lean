@@ -56,7 +56,7 @@ output:
 
 `@test` all items in each rucksack
 input:
-`@file` ../tamer/mee/03_rr.aoc
+`@file` 03_rucksack_reorganization.aoc
 output:
 8185
 2817

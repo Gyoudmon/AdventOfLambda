@@ -31,7 +31,7 @@
 (define λscanline0 (λ [] scanline0))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define find-largest-red-rectangle : (-> Input-Port Natural)
+(define largest-red-rectangle-solve : (-> Input-Port Natural)
   (lambda [/dev/aocin]
     (define vertices
       (for/vector : (Vectorof Point2D) ([pos (in-port read-point2d /dev/aocin)])
@@ -47,7 +47,7 @@
 
     (if (pair? areas) (car areas) 0)))
 
-(define find-largest-inscribed-rectangle-for-convect-polygon : (-> Input-Port Natural)
+(define largest-inscribed-rectangle-in-convect-polygon-solve : (-> Input-Port Natural)
   (lambda [/dev/aocin]
     (define-values (vertices xscnls yscnls sentries) (read-red-vertices /dev/aocin))
     (define N (vector-length vertices))
@@ -63,12 +63,12 @@
     
     (if (pair? areas) (car areas) 0)))
 
-(define find-largest-inscribed-rectangle-for-the-puzzle : (->* (Input-Port)
-                                                               ((Option (Boxof (Listof Complex)))
-                                                                (Option (Boxof (Vectorof Rect)))
-                                                                (Option (Boxof Scan-Line-Database))
-                                                                (Option (Boxof Scan-Line-Database)))
-                                                               Natural)
+(define the-largest-inscribed-rectangle-solve : (->* (Input-Port)
+                                                     ((Option (Boxof (Listof Complex)))
+                                                      (Option (Boxof (Vectorof Rect)))
+                                                      (Option (Boxof Scan-Line-Database))
+                                                      (Option (Boxof Scan-Line-Database)))
+                                                     Natural)
   (lambda [/dev/aocin [&vertices #false] [&rectangles #false] [&xline #false] [&yline #false]]
     (define-values (vertices xscnls yscnls sentries) (read-red-vertices /dev/aocin))
     (define N (vector-length vertices))
@@ -232,14 +232,10 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (module+ main
-  (require digimon/spec)
-  (require syntax/location)
   (require plotfun)
 
   (define-type Test-Case-Datum String)
   
-  (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define testcases : (Listof Test-Case-Datum)
     '("7,1"
@@ -257,52 +253,45 @@
   (define pzzl-ans1 : Integer 4744899849)
   (define pzzl-ans2 : Integer 1540192500)
 
-  (define make-puzzle-visualize : (-> Index Index Byte Byte Boolean Boolean (-> Input-Port Plot:Cartesian))
-    (lambda [width range start end display-xscnls? display-yscnls?]
-      (λ [/dev/aocin]
-        (define &dots : (Boxof (Listof Complex)) (box null))
-        (define &rects : (Boxof (Vectorof Rect)) (box (vector)))
-        (define &xscanline : (Boxof Scan-Line-Database) (box ((inst hasheq Integer Scan-Line))))
-        (define &yscanline : (Boxof Scan-Line-Database) (box ((inst hasheq Integer Scan-Line))))
-        
-        (find-largest-inscribed-rectangle-for-the-puzzle /dev/aocin &dots &rects &xscanline &yscanline)
+  (define make-puzzle-visualize : (-> Input-Port Index Index Byte Byte Boolean Boolean Plot:Cartesian)
+    (lambda [/dev/aocin width range start end display-xscnls? display-yscnls?]
+      (define &dots : (Boxof (Listof Complex)) (box null))
+      (define &rects : (Boxof (Vectorof Rect)) (box (vector)))
+      (define &xscanline : (Boxof Scan-Line-Database) (box ((inst hasheq Integer Scan-Line))))
+      (define &yscanline : (Boxof Scan-Line-Database) (box ((inst hasheq Integer Scan-Line))))
+      
+      (the-largest-inscribed-rectangle-solve /dev/aocin &dots &rects &xscanline &yscanline)
+      
+      (plot-cartesian #:width width #:screen? #true #:background 'White
+                      #:x-range (cons 0 range) #:y-range (cons 0 range)
+                      (list (lines (unbox &dots) #:close? #true)
+                            (for/list : (Listof Plot-Visualizer) ([self (in-vector (unbox &rects) start end)])
+                              (lines #:close? #true #:label (number->string (rect-area self))
+                                     (rect-vertices self)))
+                            (and display-xscnls?
+                                 (for/list : (Listof Plot-Visualizer) ([(x line) (in-hash (unbox &xscanline))])
+                                   (lines #:close? #true #:label (format "x=~a" x)
+                                          (list (make-rectangular x (scan-line-min line))
+                                                (make-rectangular x (scan-line-max line))))))
+                            (and display-yscnls?
+                                 (for/list : (Listof Plot-Visualizer) ([(y line) (in-hash (unbox &yscanline))])
+                                   (lines #:close? #true #:label (format "y=~a" y)
+                                          (list (make-rectangular (scan-line-min line) y)
+                                                (make-rectangular (scan-line-max line) y)))))))))
 
-        (plot-cartesian #:width width #:screen? #true #:background 'White
-                        #:x-range (cons 0 range) #:y-range (cons 0 range)
-                        (list (lines (unbox &dots) #:close? #true)
-                              (for/list : (Listof Plot-Visualizer) ([self (in-vector (unbox &rects) start end)])
-                                (displayln (rect-area self))
-                                (lines #:close? #true #:label (number->string (rect-area self))
-                                       (rect-vertices self)))
-                              (and display-xscnls?
-                                   (for/list : (Listof Plot-Visualizer) ([(x line) (in-hash (unbox &xscanline))])
-                                     (lines #:close? #true #:label (format "x=~a" x)
-                                            (list (make-rectangular x (scan-line-min line))
-                                                  (make-rectangular x (scan-line-max line))))))
-                              (and display-yscnls?
-                                   (for/list : (Listof Plot-Visualizer) ([(y line) (in-hash (unbox &yscanline))])
-                                     (lines #:close? #true #:label (format "y=~a" y)
-                                            (list (make-rectangular (scan-line-min line) y)
-                                                  (make-rectangular (scan-line-max line) y))))))))))
-
-  (call-with-input-string example (make-puzzle-visualize 400     12 0  4 #false #false))
-  (call-with-input-file input.aoc (make-puzzle-visualize 800 100000 0 16 #false #false))
+  ($ make-puzzle-visualize 400     12 0  4 #false #false #:< example)
+  ($ make-puzzle-visualize 800 100000 0 16 #false #false)
   
   (define-feature AoC2025::Day09::Movie.Theata #:do
-    (describe "collect stars by solving puzzles" #:do
-      (describe "what is the largest area of any rectangle you can make?" #:do
-        (it ["should produce ~a for the example" test-ans1] #:do
-          (expect-= (call-with-input-string example find-largest-red-rectangle)
-                    test-ans1))
-        (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
-          (expect-= (call-with-input-file input.aoc find-largest-red-rectangle)
-                    pzzl-ans1)))
-      (describe "what is the largest area of any rectangle you can make using only red and green tiles?" #:do
-        (it ["should produce ~a for the example" test-ans2] #:do
-          (expect-= (call-with-input-string example find-largest-inscribed-rectangle-for-convect-polygon)
-                    test-ans2))
-        (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
-          (expect-= (call-with-input-file input.aoc find-largest-inscribed-rectangle-for-the-puzzle)
-                    pzzl-ans2)))))
+    (describe "what is the largest area of any rectangle you can make?" #:do
+      (it ["should produce ~a for the example" test-ans1] #:do
+        ($ largest-red-rectangle-solve #:< example #:=> test-ans1))
+      (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
+        ($ largest-red-rectangle-solve #:=> pzzl-ans1)))
+    (describe "what is the largest area of any rectangle you can make using only red and green tiles?" #:do
+      (it ["should produce ~a for the example" test-ans2] #:do
+        ($ largest-inscribed-rectangle-in-convect-polygon-solve #:< example #:=> test-ans2))
+      (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
+        ($ the-largest-inscribed-rectangle-solve #:=> pzzl-ans2))))
     
   (void (spec-prove AoC2025::Day09::Movie.Theata)))

@@ -1,6 +1,7 @@
 #lang typed/racket/base
 
 (provide (all-defined-out))
+(provide (all-from-out digimon/spec))
 (provide (all-from-out digimon/digitama/unsafe/ops))
 (provide (all-from-out digimon/character digimon/format))
 (provide (all-from-out racket/string racket/list racket/vector racket/set))
@@ -9,12 +10,39 @@
 (require digimon/digitama/unsafe/ops)
 (require digimon/character)
 (require digimon/format)
+(require digimon/spec)
 
 (require racket/string)
 (require racket/vector)
 (require racket/port)
 (require racket/list)
 (require racket/set)
+
+(require syntax/location)
+
+(require (for-syntax racket/base))
+(require (for-syntax syntax/parse))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define-syntax (/dev/aocin stx)
+  (syntax-case stx []
+    [(_ ext) #`(path-replace-suffix (quote-source-file #,stx) ext)]
+    [(_ here ext) #'(path-replace-suffix (quote-source-file here) ext)]))
+
+(define-syntax ($ stx)
+  (syntax-parse stx #:datum-literals [< > >>]
+    [(_ f argv:expr ... (~optional (~seq #:< in) #:defaults ([in #'#".aoc"])) (~seq #:=> answer))
+     (syntax/loc stx
+       (expect-= ($ f argv ... #:< in) answer))]
+    [(_ f argv:expr ... (~optional (~seq #:< in) #:defaults ([in #'#".aoc"])))
+     (syntax/loc stx
+       (if (string? in)
+           (call-with-input-string in
+             (lambda [[/dev/stdin : Input-Port]]
+               (f /dev/stdin argv ...)))
+           (call-with-input-file* (/dev/aocin f in)
+             (lambda [[/dev/stdin : Input-Port]]
+               (f /dev/stdin argv ...)))))]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (struct point2d
@@ -113,6 +141,20 @@
                          (apply string (reverse chars))
                          (read-text (cons ch chars)))
                      eof)))
+        eof)))
+
+(define read-consecutive-lines : (-> Input-Port (U EOF (Pairof String (Listof String))))
+  (lambda [/dev/aocin]
+    (define head-line (read-line /dev/aocin))
+
+    (if (string? head-line)
+        (let read-next ([senil : (Pairof String (Listof String)) (list head-line)])
+          (define line (read-line /dev/aocin))
+
+          (if (or (eof-object? line) (regexp-match? #px"^\\s*$" line))
+              (let ([lines (reverse senil)])
+                (assert lines pair?))
+              (read-next (cons line senil))))
         eof)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

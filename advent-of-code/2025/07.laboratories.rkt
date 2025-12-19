@@ -5,7 +5,7 @@
 ;;; @link https://adventofcode.com/2025/day/7
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define drive-classical-beam-splitting : (-> Input-Port Natural)
+(define classical-beam-splitting-solve : (-> Input-Port Natural)
   (lambda [/dev/aocin]
     (define-values (beam manifold) (read-manifold /dev/aocin))
 
@@ -17,7 +17,7 @@
                (beam-classical-movedown beams line count)))
         0)))
 
-(define drive-quantum-beam-splitting : (-> Input-Port Natural)
+(define quantum-beam-splitting-solve : (-> Input-Port Natural)
   (lambda [/dev/aocin]
     (define-values (beam manifold) (read-manifold /dev/aocin))
 
@@ -63,13 +63,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (module+ main
-  (require digimon/spec)
-  (require syntax/location)
-
   (define-type Test-Case-Datum Symbol)
   
-  (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define testcases : (Listof Test-Case-Datum)
     '(.......S.......
@@ -96,20 +91,15 @@
   (define pzzl-ans2 : Integer 3223365367809)
   
   (define-feature AoC2025::Day07::Laboratories #:do
-    (describe "collect stars by solving puzzles" #:do
-      (describe "How many times will the beam be split?" #:do
-        (it ["should produce ~a for the example" test-ans1] #:do
-          (expect-= (call-with-input-string example drive-classical-beam-splitting)
-                    test-ans1))
-        (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
-          (expect-= (call-with-input-file input.aoc drive-classical-beam-splitting)
-                    pzzl-ans1)))
-      (describe "In total, how many different timelines would a single tachyon particle end up on?" #:do
-        (it ["should produce ~a for the example" test-ans2] #:do
-          (expect-= (call-with-input-string example drive-quantum-beam-splitting)
-                    test-ans2))
-        (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
-          (expect-= (call-with-input-file input.aoc drive-quantum-beam-splitting)
-                    pzzl-ans2)))))
+    (describe "How many times will the beam be split?" #:do
+      (it ["should produce ~a for the example" test-ans1] #:do
+        ($ classical-beam-splitting-solve #:< example #:=> test-ans1))
+      (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
+        ($ classical-beam-splitting-solve #:=> pzzl-ans1)))
+    (describe "In total, how many different timelines would a single tachyon particle end up on?" #:do
+      (it ["should produce ~a for the example" test-ans2] #:do
+        ($ quantum-beam-splitting-solve #:< example #:=> test-ans2))
+      (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
+        ($ quantum-beam-splitting-solve #:=> pzzl-ans2))))
     
   (void (spec-prove AoC2025::Day07::Laboratories)))

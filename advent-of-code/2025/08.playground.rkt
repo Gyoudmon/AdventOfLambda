@@ -56,19 +56,18 @@
     (= size (vector-count (λ [[v : Index]] (= (vector-ref roots 0) v)) roots))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define make-kruskal-circuits : (-> Index (-> Input-Port Natural))
-  (lambda [n]
-    (λ [/dev/aocin]
-      (define master (read-playground /dev/aocin))
-      
-      (for ([edge (in-vector (playground-sorted-edges master))]
-            [idx (in-range n)])
-        (playground-connect! master edge))
-      
-      (for/product : Natural ([circuit (in-list (playground-largest-circuits master 3))])
-        (length circuit)))))
+(define kruskal-circuits-solve : (-> Input-Port Index Natural)
+  (lambda [/dev/aocin n]
+    (define master (read-playground /dev/aocin))
+    
+    (for ([edge (in-vector (playground-sorted-edges master))]
+          [idx (in-range n)])
+      (playground-connect! master edge))
+    
+    (for/product : Natural ([circuit (in-list (playground-largest-circuits master 3))])
+      (length circuit))))
 
-(define make-the-kruskal-circuit : (-> Input-Port Natural)
+(define the-kruskal-circuit-solve : (-> Input-Port Natural)
   (lambda [/dev/aocin]
     (define master (read-playground /dev/aocin))
     (define jboxes (playground-jboxes master))
@@ -134,13 +133,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (module+ main
-  (require digimon/spec)
-  (require syntax/location)
-
   (define-type Test-Case-Datum String)
   
-  (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define testcases : (Listof Test-Case-Datum)
     '("162,817,812"
@@ -171,20 +165,16 @@
   (define pzzl-ans2 : Integer 107256172)
   
   (define-feature AoC2025::Day08::Playground #:do
-    (describe "collect stars by solving puzzles" #:do
-      (describe "How many times will the beam be split?" #:do
-        (it ["should produce ~a for the example" test-ans1] #:do
-          (expect-= (call-with-input-string example (make-kruskal-circuits 10))
-                    test-ans1))
-        (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
-          (expect-= (call-with-input-file input.aoc (make-kruskal-circuits 1000))
-                    pzzl-ans1)))
-      (describe "What do you get if you multiply together the X coordinates of the last two junction boxes you need to connect?" #:do
-        (it ["should produce ~a for the example" test-ans2] #:do
-          (expect-= (call-with-input-string example make-the-kruskal-circuit)
-                    test-ans2))
-        (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
-          (expect-= (call-with-input-file input.aoc make-the-kruskal-circuit)
-                    pzzl-ans2)))))
+    (describe "what do you get if you multiply together the sizes of the three largest circuits?" #:do
+      (it ["should produce ~a for the example" test-ans1] #:do
+        ($ kruskal-circuits-solve 10 #:< example #:=> test-ans1))
+      (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
+        ($ kruskal-circuits-solve 1000 #:=> pzzl-ans1)))
+    (describe "What do you get if you multiply together the X coordinates of the last two junction boxes you need to connect?" #:do
+      (it ["should produce ~a for the example" test-ans2] #:do
+        (expect-= (call-with-input-string example the-kruskal-circuit-solve)
+                  test-ans2))
+      (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
+        ($ the-kruskal-circuit-solve #:=> pzzl-ans2))))
     
   (void (spec-prove AoC2025::Day08::Playground)))

@@ -5,16 +5,15 @@
 ;;; @link https://adventofcode.com/2025/day/2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define make-sum-all-invalid-IDs : (-> (-> Index Any) (-> Input-Port Integer))
-  (lambda [invalid?]
-    (λ [/dev/aocin]
-      (for/sum : Integer ([range (in-port read-range /dev/aocin)])
-        (define stop (cdr range))
-        (let for-sum : Natural ([id : Natural (car range)]
-                                [sum : Natural 0])
-          (cond [(> id stop) sum]
-                [(invalid? id) (for-sum (add1 id) (+ sum id))]
-                [else (for-sum (add1 id) sum)]))))))
+(define gift-shop-solve : (-> Input-Port (-> Index Any) Integer)
+  (lambda [/dev/aocin invalid?]
+    (for/sum : Integer ([range (in-port read-range /dev/aocin)])
+      (define stop (cdr range))
+      (let for-sum : Natural ([id : Natural (car range)]
+                              [sum : Natural 0])
+        (cond [(> id stop) sum]
+              [(invalid? id) (for-sum (add1 id) (+ sum id))]
+              [else (for-sum (add1 id) sum)])))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define id-split : (-> Index (Listof Byte))
@@ -65,12 +64,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (module+ main
-  (require digimon/spec)
-  (require syntax/location)
-  
-  (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define example : String
     (string-append "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,"
                    "1698522-1698528,446443-446449,38593856-38593862,565653-565659,"
@@ -82,20 +75,15 @@
   (define pzzl-ans2 : Integer 20942028255)
   
   (define-feature AoC2025::Day02::Gift-Shop #:do
-    (describe "collect stars by solving puzzles" #:do
-      (describe "What do you get if you add up all of the invalid IDs? [twice repeated]" #:do
-        (it ["should produce ~a for the example" test-ans1] #:do
-          (expect-= (call-with-input-string example (make-sum-all-invalid-IDs repeated-twice?))
-                    test-ans1))
-        (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
-          (expect-= (call-with-input-file input.aoc (make-sum-all-invalid-IDs repeated-twice?))
-                    pzzl-ans1)))
-      (describe "What do you get if you add up all of the invalid IDs? [at least twice repeated]" #:do
-        (it ["should produce ~a for the example" test-ans2] #:do
-          (expect-= (call-with-input-string example (make-sum-all-invalid-IDs repeated-at-least-twice?))
-                    test-ans2))
-        (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
-          (expect-= (call-with-input-file input.aoc (make-sum-all-invalid-IDs repeated-at-least-twice?))
-                    pzzl-ans2)))))
+    (describe "What do you get if you add up all of the invalid IDs? [twice repeated]" #:do
+      (it ["should produce ~a for the example" test-ans1] #:do
+        ($ gift-shop-solve repeated-twice? #:< example #:=> test-ans1))
+      (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
+        ($ gift-shop-solve repeated-twice? #:=> pzzl-ans1)))
+    (describe "What do you get if you add up all of the invalid IDs? [at least twice repeated]" #:do
+      (it ["should produce ~a for the example" test-ans2] #:do
+        ($ gift-shop-solve repeated-at-least-twice? #:< example #:=> test-ans2))
+      (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
+        ($ gift-shop-solve repeated-at-least-twice? #:=> pzzl-ans2))))
 
   (void (spec-prove AoC2025::Day02::Gift-Shop)))

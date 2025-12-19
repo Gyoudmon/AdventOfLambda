@@ -5,7 +5,7 @@
 ;;; @link https://adventofcode.com/2025/day/6
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define calculate-grand-total : (-> Input-Port Integer)
+(define top-to-bottom-grand-total-solve : (-> Input-Port Integer)
   (lambda [/dev/aocin]
     (define-values (operators operands) (read-grand-problems /dev/aocin))
 
@@ -14,7 +14,7 @@
              (for/list : (Listof Integer) ([v (in-list operands)])
                (vector-ref v idx))))))
 
-(define calculate-grand-total-from-right-to-left : (-> Input-Port Integer)
+(define right-to-left-grand-total-solve : (-> Input-Port Integer)
   (lambda [/dev/aocin]
     (define problems : (Vectorof String) (read-grand-problems/char /dev/aocin))
 
@@ -70,13 +70,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (module+ main
-  (require digimon/spec)
-  (require syntax/location)
-
   (define-type Test-Case-Datum String)
   
-  (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define testcases : (Listof Test-Case-Datum)
     (list "123 328  51 64 "
@@ -91,20 +86,15 @@
   (define pzzl-ans2 : Integer 11494432585168)
   
   (define-feature AoC2025::Day06::Trash.Compactor #:do
-    (describe "collect stars by solving puzzles" #:do
-      (describe "What is the grand total found by adding together all of the answers to the individual problems?" #:do
-        (it ["should produce ~a for the example" test-ans1] #:do
-          (expect-= (call-with-input-string example calculate-grand-total)
-                    test-ans1))
-        (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
-          (expect-= (call-with-input-file input.aoc calculate-grand-total)
-                    pzzl-ans1)))
-      (describe "What is the grand total found by adding together all of the answers to the individual problems? [by reading right to left char by char]" #:do
-        (it ["should produce ~a for the example" test-ans2] #:do
-          (expect-= (call-with-input-string example calculate-grand-total-from-right-to-left)
-                    test-ans2))
-        (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
-          (expect-= (call-with-input-file input.aoc calculate-grand-total-from-right-to-left)
-                    pzzl-ans2)))))
+    (describe "What is the grand total found by adding together all of the answers to the individual problems? [by reading top to bottom number by number]" #:do
+      (it ["should produce ~a for the example" test-ans1] #:do
+        ($ top-to-bottom-grand-total-solve #:< example #:=> test-ans1))
+      (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
+        ($ top-to-bottom-grand-total-solve #:=> pzzl-ans1)))
+    (describe "What is the grand total found by adding together all of the answers to the individual problems? [by reading right to left char by char]" #:do
+      (it ["should produce ~a for the example" test-ans2] #:do
+        ($ right-to-left-grand-total-solve #:< example #:=> test-ans2))
+      (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
+        ($ right-to-left-grand-total-solve #:=> pzzl-ans2))))
     
   (void (spec-prove AoC2025::Day06::Trash.Compactor)))

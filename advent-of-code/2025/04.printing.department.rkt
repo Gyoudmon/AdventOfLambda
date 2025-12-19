@@ -5,7 +5,7 @@
 ;;; @link https://adventofcode.com/2025/day/4
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define mark-forklift-path : (-> Input-Port Integer)
+(define forklift-path-solve : (-> Input-Port Integer)
   (lambda [/dev/aocin]
     (define grid : (Vectorof String) (list->vector (port->lines /dev/aocin)))
 
@@ -18,7 +18,7 @@
                (cell-removable? grid r c row col))
           1 0))))
 
-(define remove-rolls-of-paper : (-> Input-Port Integer)
+(define rolls-of-paper-solve : (-> Input-Port Integer)
   (lambda [/dev/aocin]
     (define grid : (Vectorof String) (list->vector (port->lines /dev/aocin)))
 
@@ -27,10 +27,11 @@
 
     (let remove ([sum : Natural 0])
       (define marked-rolls
-        (for*/list : (Listof (Pairof Integer Integer)) ([r (in-range row)]
-                                                        [c (in-range col)]
-                                                        #:when (and (eq? (string-ref (vector-ref grid r) c) #\@)
-                                                                    (cell-removable? grid r c row col)))
+        (for*/list : (Listof (Pairof Integer Integer))
+          ([r (in-range row)]
+           [c (in-range col)]
+           #:when (and (eq? (string-ref (vector-ref grid r) c) #\@)
+                       (cell-removable? grid r c row col)))
           (cons r c)))
 
       (if (pair? marked-rolls)
@@ -60,13 +61,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (module+ main
-  (require digimon/spec)
-  (require syntax/location)
-
   (define-type Test-Case-Datum Symbol)
   
-  (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define testcases : (Listof Test-Case-Datum)
     '(..@@.@@@@.
@@ -87,20 +83,15 @@
   (define pzzl-ans2 : Integer 8739)
   
   (define-feature AoC2025::Day04::Printing-Department #:do
-    (describe "collect stars by solving puzzles" #:do
-      (describe "How many rolls of paper can be accessed by a forklift?" #:do
-        (it ["should produce ~a for the example" test-ans1] #:do
-          (expect-= (call-with-input-string example mark-forklift-path)
-                    test-ans1))
-        (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
-          (expect-= (call-with-input-file input.aoc mark-forklift-path)
-                    pzzl-ans1)))
-      (describe "How many rolls of paper in total can be removed by the Elves and their forklifts?" #:do
-        (it ["should produce ~a for the example" test-ans2] #:do
-          (expect-= (call-with-input-string example remove-rolls-of-paper)
-                    test-ans2))
-        (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
-          (expect-= (call-with-input-file input.aoc remove-rolls-of-paper)
-                    pzzl-ans2)))))
+    (describe "How many rolls of paper can be accessed by a forklift?" #:do
+      (it ["should produce ~a for the example" test-ans1] #:do
+        ($ forklift-path-solve #:< example #:=> test-ans1))
+      (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
+        ($ forklift-path-solve #:=> pzzl-ans1)))
+    (describe "How many rolls of paper in total can be removed by the Elves and their forklifts?" #:do
+      (it ["should produce ~a for the example" test-ans2] #:do
+        ($ rolls-of-paper-solve #:< example #:=> test-ans2))
+      (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
+        ($ rolls-of-paper-solve #:=> pzzl-ans2))))
     
   (void (spec-prove AoC2025::Day04::Printing-Department)))

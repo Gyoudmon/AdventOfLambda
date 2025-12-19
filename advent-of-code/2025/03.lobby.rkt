@@ -5,11 +5,10 @@
 ;;; @link https://adventofcode.com/2025/day/3
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define make-turn-on-batteries : (-> (-> String Integer) (-> Input-Port Integer))
-  (lambda [turn-on]
-    (λ [/dev/aocin]
-      (for/sum : Integer ([line (in-lines /dev/aocin)])
-        (turn-on line)))))
+(define lobby-solver-compose : (-> Input-Port (-> String Integer) Integer)
+  (lambda [/dev/aocin turn-on]
+    (for/sum : Integer ([line (in-lines /dev/aocin)])
+      (turn-on line))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define find-largest-two-joltages : (-> String Integer)
@@ -65,12 +64,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (module+ main
-  (require digimon/spec)
-  (require syntax/location)
-  
   (define-type Test-Case-Datum (List String Integer Integer))
-  (define input.aoc (path-replace-suffix (quote-source-file #'this) #".aoc"))
-
+  
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (define testcases : (Listof Test-Case-Datum)
     (list (list "987654321111111" 98 987654321111)
@@ -85,26 +80,20 @@
   (define pzzl-ans2 : Integer 169512729575727)
   
   (define-feature AoC2025::Day03::Lobby #:do
-    (describe "collect stars by solving puzzles" #:do
-      (describe "what is the total output joltage for two batteries?" #:do
-        (it ["should produce ~a for the example" test-ans1] #:do
-          (expect-= (call-with-input-string example (make-turn-on-batteries find-largest-two-joltages))
-                    test-ans1))
-        (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
-          (expect-= (call-with-input-file input.aoc (make-turn-on-batteries find-largest-two-joltages))
-                    pzzl-ans1)))
-      (describe "what is the total output joltage for twelve batteries?" #:do
-        (it ["should produce ~a for the example" test-ans2] #:do
-          (expect-= (call-with-input-string example (make-turn-on-batteries find-largest-twelve-joltages))
-                    test-ans2))
-        (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
-          (expect-= (call-with-input-file input.aoc (make-turn-on-batteries find-largest-twelve-joltages))
-                    pzzl-ans2))))
-    (context "details in the solving process" #:do
+    (describe "what is the total output joltage for two batteries?" #:do
+      (it ["should produce ~a for the example" test-ans1] #:do
+        ($ lobby-solver-compose find-largest-two-joltages #:< example #:=> test-ans1))
+      (it ["should produce ~a for the puzzle" pzzl-ans1] #:do
+        ($ lobby-solver-compose find-largest-two-joltages #:=> pzzl-ans1))
       (describe "Turn on exact two batteries" #:do
         (for/spec ([t (in-list testcases)])
           (it ["[~a] the largest joltage should be ~a" (car t) (cadr t)] #:do
-            (expect-= (find-largest-two-joltages (car t)) (cadr t)))))
+            (expect-= (find-largest-two-joltages (car t)) (cadr t))))))
+    (describe "what is the total output joltage for twelve batteries?" #:do
+      (it ["should produce ~a for the example" test-ans2] #:do
+        ($ lobby-solver-compose find-largest-twelve-joltages #:< example #:=> test-ans2))
+      (it ["should produce ~a for the puzzle" pzzl-ans2] #:do
+        ($ lobby-solver-compose find-largest-twelve-joltages #:=> pzzl-ans2))
       (describe "Turn on exact twelve batteries" #:do
         (for/spec ([t (in-list testcases)])
           (it ["[~a] the largest joltage should be ~a" (car t) (caddr t)] #:do
