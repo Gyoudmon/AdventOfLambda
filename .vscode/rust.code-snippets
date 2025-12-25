@@ -1,0 +1,77 @@
+{
+	// Place your snippets for rust here. Each snippet is defined under a snippet name and has a prefix, body and 
+	// description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
+	// same ids are connected.
+	// Example:
+	"Rust Reader": {
+	 	"prefix": "rs::reader",
+	 	"body": [
+			"#![allow(unused_macros, dead_code)]",
+			"",
+			"use std::io;",
+			"",
+			"fn read_line() -> String {",
+    		"    let mut s = String::new();",
+			"    io::stdin().read_line(&mut s).unwrap();",
+    		"    s.trim().to_string()",
+			"}",
+			"",
+			"fn read_tokens() -> Vec<String> {",
+    		"    let mut s = String::new();",
+    		"    io::stdin().read_line(&mut s).unwrap();",
+    		"    s.trim().split_whitespace().map(|token| token.to_string()).collect()",
+			"}",
+			"",
+			"macro_rules! inst {",
+    		"    (\\$e:expr) => { \\$e.parse().unwrap() };",
+			"    (\\$e:expr, \\$t:ty) => { \\$e.parse::<\\$t>().unwrap() };",
+			"}",
+			"",
+			"fn main() {",
+			"",
+			"}",
+			""
+	 	],
+	 	"description": "Handy macros for reading from the stdin"
+	},
+
+	"Rust Scanner": {
+	 	"prefix": "rs::scanner",
+	 	"body": [
+			"use std::io::{self, BufRead};",
+			"",
+			"struct Scanner {",
+			"    tokens: std::vec::IntoIter<String>,",
+			"}",
+			"",
+			"impl Scanner {",
+			"    fn new() -> Self {",
+			"        let mut s = String::new();",
+			"        io::stdin().read_line(&mut s).unwrap();",
+			"        let tokens = s",
+			"            .split_whitespace()",
+			"            .map(String::from)",
+			"            .collect::<Vec<_>>();",
+			"        Scanner { tokens: tokens.into_iter() }",
+			"    }",
+			"",
+			"    fn next<T: std::str::FromStr>(&mut self) -> T {",
+			"        let token = self.tokens.next().unwrap();",
+			"        token.parse().ok().unwrap()",
+			"    }",
+			"",
+			"    fn next_vec<T: std::str::FromStr>(&mut self, n: usize) -> Vec<T> {",
+			"        (0..n).map(|_| self.next()).collect()",
+			"    }",
+			"}",
+			"",
+			"",
+			"fn main() {",
+			"",
+			"}",
+			""
+	 	],
+	 	"description": "Handy object for reading from the stdin"
+	}
+}
